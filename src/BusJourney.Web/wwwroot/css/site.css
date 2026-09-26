@@ -1,0 +1,810 @@
+/*
+ * Visual language borrowed from Turkish motorway signage and terminal departure boards:
+ * motorway green, road-marking yellow for the single primary action, Barlow (a typeface drawn
+ * from highway sign lettering) and large condensed departure times.
+ */
+:root {
+    --green: #0f5b45;
+    --green-deep: #0a3f30;
+    --green-soft: #e3ece7;
+    --yellow: #f2b21b;
+    --yellow-deep: #d99a06;
+    --ink: #17231f;
+    --muted: #5f6c67;
+    --page: #eef2ef;
+    --surface: #ffffff;
+    --line: #d5ddd8;
+    --error: #b42318;
+    --error-bg: #fdecea;
+    --radius: 6px;
+    --font: "Barlow", system-ui, -apple-system, "Segoe UI", sans-serif;
+    --font-display: "Barlow Condensed", "Barlow", system-ui, sans-serif;
+}
+
+body {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    background: var(--page);
+    color: var(--ink);
+    font-family: var(--font);
+    font-size: 1rem;
+    line-height: 1.5;
+}
+
+.wrap {
+    width: 100%;
+    max-width: 1120px;
+    margin: 0 auto;
+    padding: 0 16px;
+}
+
+:focus-visible {
+    outline: 3px solid var(--yellow);
+    outline-offset: 2px;
+}
+
+/* ---------- Site header & footer ---------- */
+.site-header {
+    background: var(--green-deep);
+}
+
+.brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 0;
+    color: #fff;
+    font-family: var(--font-display);
+    font-size: 1.35rem;
+    font-weight: 700;
+    letter-spacing: 0.01em;
+    text-decoration: none;
+}
+
+.brand:hover {
+    color: #fff;
+}
+
+.brand__mark {
+    width: 32px;
+    height: 32px;
+}
+
+.brand__plate {
+    fill: var(--green);
+}
+
+.brand__bus {
+    fill: var(--yellow);
+}
+
+.site-footer {
+    margin-top: auto;
+    padding: 20px 0;
+    color: var(--muted);
+    font-size: 0.875rem;
+}
+
+/* ---------- Green band (page heading area) ---------- */
+.band {
+    padding: 28px 0 32px;
+    background: var(--green);
+    color: #fff;
+}
+
+.band__title {
+    margin: 0;
+    font-family: var(--font-display);
+    font-size: clamp(2rem, 5vw, 3rem);
+    font-weight: 700;
+    line-height: 1.05;
+}
+
+.band__lead {
+    max-width: 60ch;
+    margin: 8px 0 0;
+    color: #d2e4db;
+    font-size: 1.05rem;
+}
+
+.band__count {
+    margin-left: 12px;
+    padding: 2px 10px;
+    border-radius: 999px;
+    background: var(--green-deep);
+    color: #fff;
+    font-size: 0.9rem;
+    white-space: nowrap;
+}
+
+.back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 12px;
+    color: #d2e4db;
+    font-weight: 500;
+    text-decoration: none;
+}
+
+.back-link:hover {
+    color: #fff;
+}
+
+.back-link svg {
+    width: 18px;
+    fill: currentColor;
+}
+
+/* ---------- Search form ---------- */
+.search-form {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 12px;
+    margin-top: 24px;
+}
+
+.search-box {
+    position: relative;
+    display: flex;
+    background: var(--surface);
+    color: var(--ink);
+    border-radius: var(--radius);
+}
+
+.search-box:focus-within {
+    box-shadow: 0 0 0 3px var(--yellow);
+}
+
+.search-field {
+    position: relative;
+    flex: 1;
+    min-width: 0;
+    padding: 10px 16px 12px;
+}
+
+.field-label {
+    display: block;
+    color: var(--muted);
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.field-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.field-icon {
+    flex: none;
+    width: 20px;
+    fill: var(--green);
+}
+
+.field-input {
+    width: 100%;
+    min-width: 0;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: var(--ink);
+    font-size: 1.15rem;
+    font-weight: 600;
+}
+
+.field-input::placeholder {
+    color: #9aa5a0;
+    font-weight: 400;
+}
+
+.field-input:focus {
+    outline: none;
+}
+
+/* The date field already shows its own calendar icon: the native picker indicator is made invisible
+   and stretched over the input, so clicking anywhere on the date opens the picker. */
+input[type="date"].field-input {
+    position: relative;
+}
+
+input[type="date"].field-input::-webkit-calendar-picker-indicator {
+    position: absolute;
+    inset: 0;
+    width: auto;
+    height: auto;
+    opacity: 0;
+    cursor: pointer;
+}
+
+/* Route box on mobile: two separate cards with a gap; the swap button sits in the middle of that gap,
+   so it never covers the text of either field. */
+.route-box {
+    flex-direction: column;
+    gap: 16px;
+    background: transparent;
+}
+
+.route-box:focus-within {
+    box-shadow: none;
+}
+
+.route-box .location-field {
+    background: var(--surface);
+    border-radius: var(--radius);
+}
+
+.route-box .location-field:focus-within {
+    box-shadow: 0 0 0 3px var(--yellow);
+}
+
+/* Route markers: hollow ring for the origin, filled dot for the destination. */
+.route-dot {
+    flex: none;
+    width: 14px;
+    height: 14px;
+    margin: 0 3px;
+    border-radius: 50%;
+}
+
+.route-dot--origin {
+    border: 3px solid var(--green);
+    background: var(--surface);
+}
+
+.route-dot--destination {
+    background: var(--green);
+}
+
+.swap-button {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    z-index: 2;
+    display: inline-flex;
+    width: 36px;
+    height: 36px;
+    align-items: center;
+    justify-content: center;
+    transform: translate(-50%, -50%);
+    border: 0;
+    border-radius: 10px;
+    background: var(--green-soft);
+}
+
+.swap-button svg {
+    width: 20px;
+    fill: var(--green);
+}
+
+.swap-button:hover {
+    background: #d0e1d7;
+}
+
+/* Date box: the date field never shrinks below its content; on narrow screens the switch wraps
+   onto its own full-width row instead of squeezing the date. */
+.date-box {
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.date-box .search-field {
+    flex: 1 0 auto;
+}
+
+/* Chrome gives date inputs a fixed intrinsic width wider than the date itself. With equal-width digits a
+   dd.mm.yyyy (or mm/dd/yyyy) date is ~9ch wide, so the input is sized to that and the next-day arrow sits
+   right after the date. */
+input[type="date"].field-input {
+    flex: none;
+    width: 9.4ch;
+    font-variant-numeric: tabular-nums;
+}
+
+input[type="date"].field-input::-webkit-datetime-edit,
+input[type="date"].field-input::-webkit-datetime-edit-fields-wrapper {
+    padding: 0;
+}
+
+/* Previous / next day arrows around the date. */
+.day-step {
+    display: inline-flex;
+    flex: none;
+    width: 28px;
+    height: 28px;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    border: 0;
+    border-radius: 6px;
+    background: transparent;
+}
+
+.day-step svg {
+    width: 22px;
+    fill: var(--green);
+}
+
+.day-step:hover:not(:disabled) {
+    background: var(--green-soft);
+}
+
+.day-step:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+}
+
+/* Today / Tomorrow as one segmented switch; a green thumb slides under the active half. */
+.quick-dates {
+    position: relative;
+    display: flex;
+    flex-basis: 100%;
+    margin: 0 16px 12px;
+    padding: 3px;
+    border-radius: 999px;
+    background: var(--green-soft);
+}
+
+.quick-dates::before {
+    content: "";
+    position: absolute;
+    top: 3px;
+    bottom: 3px;
+    left: 3px;
+    width: calc(50% - 3px);
+    border-radius: 999px;
+    background: var(--green);
+    opacity: 0;
+    transition: transform 0.25s ease, opacity 0.2s ease;
+}
+
+.quick-dates[data-active="0"]::before,
+.quick-dates[data-active="1"]::before {
+    opacity: 1;
+}
+
+.quick-dates[data-active="1"]::before {
+    transform: translateX(100%);
+}
+
+.quick-date {
+    position: relative;
+    flex: 1;
+    min-width: 72px;
+    height: 32px;
+    padding: 0;
+    border: 0;
+    border-radius: 999px;
+    background: transparent;
+    color: var(--green-deep);
+    font-size: 0.9rem;
+    font-weight: 600;
+    transition: color 0.25s ease;
+}
+
+.quick-date[aria-pressed="true"] {
+    color: #fff;
+}
+
+.search-button {
+    display: inline-block;
+    padding: 14px 28px;
+    border: 0;
+    border-radius: var(--radius);
+    background: var(--yellow);
+    color: var(--ink);
+    font-family: var(--font-display);
+    font-size: 1.35rem;
+    font-weight: 700;
+    text-align: center;
+    text-decoration: none;
+}
+
+.search-button:hover {
+    background: var(--yellow-deep);
+    color: var(--ink);
+}
+
+/* ---------- Back to top ---------- */
+.back-to-top {
+    position: fixed;
+    left: 20px;
+    bottom: 20px;
+    z-index: 50;
+    display: inline-flex;
+    width: 48px;
+    height: 48px;
+    align-items: center;
+    justify-content: center;
+    border: 0;
+    border-radius: 50%;
+    background: var(--green);
+    box-shadow: 0 6px 16px rgba(10, 63, 48, 0.3);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(12px);
+    transition: opacity 0.25s ease, transform 0.25s ease, visibility 0s linear 0.25s;
+}
+
+.back-to-top.is-visible {
+    opacity: 1;
+    visibility: visible;
+    transform: none;
+    transition: opacity 0.25s ease, transform 0.25s ease;
+}
+
+.back-to-top:hover {
+    background: var(--green-deep);
+}
+
+.back-to-top svg {
+    width: 24px;
+    fill: #fff;
+}
+
+/* ---------- Loading overlay ---------- */
+.loading-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    background: rgba(238, 242, 239, 0.88);
+    backdrop-filter: blur(3px);
+    cursor: progress;
+    /* Hidden state keeps the element rendered so opacity can transition; visibility flips after the fade. */
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0s linear 0.3s;
+}
+
+.loading-overlay.is-visible {
+    opacity: 1;
+    visibility: visible;
+    transition: opacity 0.3s ease;
+}
+
+.loading-overlay__spinner,
+.loading-overlay__text {
+    transform: translateY(10px);
+    transition: transform 0.35s ease;
+}
+
+.loading-overlay.is-visible .loading-overlay__spinner,
+.loading-overlay.is-visible .loading-overlay__text {
+    transform: none;
+}
+
+/* A yellow arc runs around the bus mark on a green track. */
+.loading-overlay__spinner {
+    position: relative;
+    display: grid;
+    width: 96px;
+    height: 96px;
+    place-items: center;
+}
+
+.loading-overlay__spinner::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border: 5px solid var(--green-soft);
+    border-top-color: var(--yellow);
+    border-right-color: var(--yellow);
+    border-radius: 50%;
+    animation: spin 0.9s linear infinite;
+}
+
+.loading-overlay__bus {
+    width: 52px;
+    height: 52px;
+}
+
+.loading-overlay__text {
+    margin: 0;
+    color: var(--green-deep);
+    font-family: var(--font-display);
+    font-size: 1.4rem;
+    font-weight: 700;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Cross-document view transition: page changes (search → journeys, back) cross-fade instead of cutting.
+   Browsers without support simply navigate as before. */
+@view-transition {
+    navigation: auto;
+}
+
+::view-transition-old(root),
+::view-transition-new(root) {
+    animation-duration: 0.35s;
+}
+
+.form-errors {
+    margin: 0;
+    padding: 10px 16px 10px 32px;
+    border-radius: var(--radius);
+    background: var(--error-bg);
+    color: var(--error);
+    font-weight: 500;
+}
+
+
+/* ---------- Suggestions ---------- */
+.suggestions {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    right: 0;
+    z-index: 10;
+    max-height: 300px;
+    margin: 0;
+    padding: 4px 0;
+    overflow-y: auto;
+    list-style: none;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    box-shadow: 0 12px 28px rgba(10, 63, 48, 0.18);
+}
+
+.suggestion {
+    padding: 9px 16px;
+    cursor: pointer;
+}
+
+.suggestion:hover,
+.suggestion[aria-selected="true"] {
+    background: var(--green-soft);
+}
+
+.suggestion--empty {
+    color: var(--muted);
+    cursor: default;
+}
+
+.suggestion--disabled {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    color: #9aa5a0;
+    cursor: not-allowed;
+}
+
+.suggestion--disabled:hover {
+    background: transparent;
+}
+
+.suggestion__hint {
+    font-size: 0.8rem;
+    white-space: nowrap;
+}
+
+/* ---------- Journey list ---------- */
+.page {
+    padding-top: 24px;
+    padding-bottom: 24px;
+}
+
+.journey-list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+}
+
+/* Mobile: times on the first line; stations, company and price below. */
+.journey {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+        "times times"
+        "details price";
+    gap: 6px 16px;
+    align-items: center;
+    padding: 14px 16px;
+}
+
+.journey + .journey {
+    border-top: 1px solid var(--line);
+}
+
+/* Separates same-day journeys from the ones leaving after midnight. */
+.journey-list__notice {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 16px;
+    border-top: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
+    background: var(--green-soft);
+    color: var(--green-deep);
+    font-weight: 600;
+}
+
+.journey-list__notice svg {
+    flex: none;
+    width: 20px;
+    fill: var(--green);
+}
+
+.journey__times {
+    grid-area: times;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.journey__time {
+    font-family: var(--font-display);
+    font-size: 1.9rem;
+    font-weight: 700;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+}
+
+/* Duration sits on a line between departure and arrival, like a route on a timetable. */
+.journey__duration {
+    display: flex;
+    flex: 1;
+    align-items: center;
+    gap: 6px;
+    max-width: 160px;
+    color: var(--muted);
+    font-size: 0.8rem;
+    white-space: nowrap;
+}
+
+.journey__duration::before,
+.journey__duration::after {
+    content: "";
+    flex: 1;
+    min-width: 8px;
+    border-top: 2px dashed var(--line);
+}
+
+.journey__details {
+    grid-area: details;
+}
+
+.journey__stations {
+    margin: 0;
+    font-weight: 500;
+}
+
+.journey__partner {
+    margin: 0;
+    color: var(--muted);
+    font-size: 0.9rem;
+}
+
+.journey__price {
+    grid-area: price;
+    margin: 0;
+    color: var(--green);
+    font-family: var(--font-display);
+    font-size: 1.6rem;
+    font-weight: 700;
+    white-space: nowrap;
+    text-align: right;
+}
+
+.journey__price span {
+    font-size: 1rem;
+}
+
+.empty-state {
+    max-width: 560px;
+    margin: 24px auto;
+    padding: 32px 24px;
+    text-align: center;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+}
+
+.empty-state h2 {
+    font-family: var(--font-display);
+    font-size: 1.75rem;
+    font-weight: 700;
+}
+
+.empty-state p {
+    color: var(--muted);
+}
+
+/* ---------- Tablet & desktop ---------- */
+/* Horizontal search bar needs ~1024px; tablets keep the stacked layout. */
+@media (min-width: 1024px) {
+    .wrap {
+        padding: 0 24px;
+    }
+
+    .band {
+        padding: 40px 0 48px;
+    }
+
+    /* Home: the search band fills the viewport and centers the form, slightly above the middle. */
+    .band--search {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        padding-bottom: 12vh;
+    }
+
+    /* One horizontal search bar: route | date | action; errors wrap to their own row. */
+    .search-form {
+        /* The date column sizes to its content (date + arrows + switch); the route takes the rest. */
+        grid-template-columns: minmax(0, 1fr) auto auto;
+        align-items: stretch;
+        margin-top: 28px;
+    }
+
+    .form-errors {
+        grid-column: 1 / -1;
+    }
+
+    /* Desktop: both fields share one box again, separated by a divider. */
+    .route-box {
+        flex-direction: row;
+        gap: 0;
+        background: var(--surface);
+    }
+
+    .route-box:focus-within {
+        box-shadow: 0 0 0 3px var(--yellow);
+    }
+
+    /* Room on both sides of the divider so the swap button never touches the labels. */
+    .route-box .location-field {
+        padding-right: 32px;
+        background: transparent;
+        border-radius: 0;
+    }
+
+    .route-box .location-field:focus-within {
+        box-shadow: none;
+    }
+
+    .route-box .location-field ~ .location-field {
+        border-left: 1px solid var(--line);
+        padding-left: 40px;
+        padding-right: 16px;
+    }
+
+    .date-box {
+        flex-wrap: nowrap;
+    }
+
+    .quick-dates {
+        flex-basis: auto;
+        margin: 0 12px 0 auto;
+    }
+
+    .swap-button {
+        transform: translate(-50%, -50%) rotate(90deg);
+    }
+
+    .search-button {
+        padding: 0 36px;
+    }
+
+    /* Desktop list reads like a departure board: times | stations | price. */
+    .journey {
+        grid-template-columns: 320px 1fr auto;
+        grid-template-areas: "times details price";
+        gap: 24px;
+        padding: 16px 24px;
+    }
+}

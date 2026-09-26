@@ -1,0 +1,12 @@
+@model string
+@{
+    ViewData["Title"] = "Seferlere ulaşılamadı";
+}
+
+<main class="wrap page">
+    <div class="empty-state">
+        <h2>Seferlere ulaşılamadı</h2>
+        <p>@Model</p>
+        <a class="search-button" asp-controller="Home" asp-action="Index">Aramaya dön</a>
+    </div>
+</main>

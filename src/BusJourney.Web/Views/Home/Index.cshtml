@@ -1,0 +1,83 @@
+@model SearchViewModel
+@{
+    ViewData["Title"] = "Sefer Ara";
+    const string DateFormat = "yyyy-MM-dd";
+    var errors = ViewData.ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage);
+}
+
+<section class="band band--search">
+    <div class="wrap">
+        <h1 class="band__title">Nereye gidiyorsun?</h1>
+        <p class="band__lead">Güzergahını ve tarihini seç, o günün tüm otobüs seferlerini kalkış saatine göre listeleyelim.</p>
+
+        @* Last search is restored from localStorage only on a clean load, never over server-side validation errors. *@
+        <form id="search-form" class="search-form" method="get" asp-controller="Journey" asp-action="Index" novalidate
+              data-restore="@(ViewData.ModelState.IsValid ? "true" : "false")">
+
+            <div class="search-box route-box">
+                <partial name="_LocationField" model='new LocationFieldModel("origin", "originId", "Nereden", Model.Origin)' />
+                <button type="button" class="swap-button" data-swap aria-label="Nereden ve nereye yer değiştir">
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                        <path d="M7 3 3 7h3v7h2V7h3L7 3Zm10 18 4-4h-3v-7h-2v7h-3l4 4Z" />
+                    </svg>
+                </button>
+                <partial name="_LocationField" model='new LocationFieldModel("destination", "destinationId", "Nereye", Model.Destination)' />
+            </div>
+
+            <div class="search-box date-box">
+                <div class="search-field">
+                    <label class="field-label" for="date-input">Tarih</label>
+                    <div class="field-row">
+                        <button type="button" class="day-step" data-day-step="-1" aria-label="Önceki gün">
+                            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15.4 7.4 14 6l-6 6 6 6 1.4-1.4-4.6-4.6 4.6-4.6Z" /></svg>
+                        </button>
+                        <svg class="field-icon" viewBox="0 0 24 24" aria-hidden="true">
+                            <path d="M7 2v2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2h-2V2h-2v2H9V2H7Zm-2 8h14v10H5V10Zm2 2v2h2v-2H7Zm4 0v2h2v-2h-2Zm4 0v2h2v-2h-2Z" />
+                        </svg>
+                        <input id="date-input" class="field-input" type="date" name="date" required
+                               value="@Model.DepartureDate.ToString(DateFormat)"
+                               min="@Model.Today.ToString(DateFormat)"
+                               data-tomorrow="@Model.Tomorrow.ToString(DateFormat)" />
+                        <button type="button" class="day-step" data-day-step="1" aria-label="Sonraki gün">
+                            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8.6 16.6 10 18l6-6-6-6-1.4 1.4 4.6 4.6-4.6 4.6Z" /></svg>
+                        </button>
+                    </div>
+                </div>
+                @* Segmented switch: the highlight slides to the active half; no highlight when another day is picked. *@
+                <div class="quick-dates" role="group" aria-label="Hızlı tarih seçimi" data-active="">
+                    <button type="button" class="quick-date" aria-pressed="false" data-quick-date="@Model.Today.ToString(DateFormat)">Bugün</button>
+                    <button type="button" class="quick-date" aria-pressed="false" data-quick-date="@Model.Tomorrow.ToString(DateFormat)">Yarın</button>
+                </div>
+            </div>
+
+            <button type="submit" class="search-button" data-search-button>Sefer ara</button>
+
+            <ul id="form-errors" class="form-errors" role="alert" hidden="@(errors.Any() ? null : "hidden")">
+                @foreach (var error in errors)
+                {
+                    <li>@error</li>
+                }
+            </ul>
+        </form>
+    </div>
+</section>
+
+@* Shown while the browser waits for the journey list; journeys are fetched server side before that page renders. *@
+<div class="loading-overlay" id="loading-overlay" role="status" aria-live="polite">
+    <div class="loading-overlay__spinner">
+        <svg class="loading-overlay__bus" viewBox="0 0 32 32" aria-hidden="true">
+            <rect class="brand__plate" width="32" height="32" rx="7" />
+            <rect class="brand__bus" x="7" y="7" width="18" height="15" rx="3" />
+            <rect class="brand__bus" x="9" y="21" width="3" height="4" rx="1" />
+            <rect class="brand__bus" x="20" y="21" width="3" height="4" rx="1" />
+            <rect class="brand__plate" x="9.5" y="9.5" width="13" height="6" rx="1" />
+        </svg>
+    </div>
+    <p class="loading-overlay__text">Seferler aranıyor…</p>
+</div>
+
+<script type="application/json" id="initial-locations">@Json.Serialize(Model.InitialSuggestions)</script>
+
+@section Scripts {
+    <script type="module" src="~/js/search-form.js" asp-append-version="true"></script>
+}

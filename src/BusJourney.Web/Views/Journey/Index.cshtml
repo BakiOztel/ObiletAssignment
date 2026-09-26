@@ -1,0 +1,88 @@
+@using BusJourney.Web.Formatting
+@model JourneySearchResult
+@{
+    ViewData["Title"] = $"{Model.OriginName} - {Model.DestinationName}";
+    // The provider also returns journeys leaving after midnight (early next day); they come last after sorting.
+    var nightNoticeShown = false;
+}
+@functions {
+    private static string CurrencyLabel(string currency) => currency == "TRY" ? "TL" : currency;
+
+    private static string FormatDuration(TimeSpan duration) =>
+        duration.Minutes == 0
+            ? $"{(int)duration.TotalHours} sa"
+            : $"{(int)duration.TotalHours} sa {duration.Minutes} dk";
+}
+
+<section class="band band--route">
+    <div class="wrap">
+        <a class="back-link" asp-controller="Home" asp-action="Index">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11H7.8l5.6-5.6L12 4l-8 8 8 8 1.4-1.4L7.8 13H20v-2Z" /></svg>
+            Aramayı değiştir
+        </a>
+        <h1 class="band__title">@Model.OriginName – @Model.DestinationName</h1>
+        <p class="band__lead">
+            @Model.DepartureDate.ToString("d MMMM yyyy, dddd")
+            @if (Model.Journeys.Count > 0)
+            {
+                <span class="band__count">@Model.Journeys.Count sefer</span>
+            }
+        </p>
+    </div>
+</section>
+
+<main class="wrap page">
+    @if (Model.Journeys.Count == 0)
+    {
+        <div class="empty-state">
+            <h2>Bu tarihte sefer bulunamadı</h2>
+            <p>Başka bir tarih ya da yakın bir kalkış noktası seçerek tekrar arayabilirsin.</p>
+            <a class="search-button" asp-controller="Home" asp-action="Index">Yeni arama yap</a>
+        </div>
+    }
+    else
+    {
+        <ol class="journey-list">
+            @foreach (var journey in Model.Journeys)
+            {
+                if (!nightNoticeShown && DateOnly.FromDateTime(journey.Departure) > Model.DepartureDate)
+                {
+                    nightNoticeShown = true;
+                    <li class="journey-list__notice">
+                        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12.3 2a10 10 0 1 0 9.7 12.5A8 8 0 0 1 12.3 2Z" /></svg>
+                        Aşağıdaki seferler @TurkishDayNames.NightAfter(Model.DepartureDate) gerçekleşecektir.
+                    </li>
+                }
+                <li class="journey">
+                    <div class="journey__times">
+                        <span class="journey__time">
+                            <span class="visually-hidden">Kalkış</span>
+                            @journey.Departure.ToString("HH:mm")
+                        </span>
+                        <span class="journey__duration">@FormatDuration(journey.Arrival - journey.Departure)</span>
+                        <span class="journey__time">
+                            <span class="visually-hidden">Varış</span>
+                            @journey.Arrival.ToString("HH:mm")
+                        </span>
+                    </div>
+                    <div class="journey__details">
+                        <p class="journey__stations">@journey.OriginStation – @journey.DestinationStation</p>
+                        @if (!string.IsNullOrEmpty(journey.PartnerName))
+                        {
+                            <p class="journey__partner">@journey.PartnerName</p>
+                        }
+                    </div>
+                    <p class="journey__price">@journey.Price.ToString("N2") <span>@CurrencyLabel(journey.Currency)</span></p>
+                </li>
+            }
+        </ol>
+
+        <button type="button" class="back-to-top" id="back-to-top" aria-label="Sayfanın başına dön">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13 20h-2V7.8l-5.6 5.6L4 12l8-8 8 8-1.4 1.4L13 7.8V20Z" /></svg>
+        </button>
+    }
+</main>
+
+@section Scripts {
+    <script type="module" src="~/js/back-to-top.js" asp-append-version="true"></script>
+}
