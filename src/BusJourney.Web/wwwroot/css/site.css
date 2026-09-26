@@ -652,6 +652,18 @@ input[type="date"].field-input::-webkit-datetime-edit-fields-wrapper {
     font-weight: 700;
     line-height: 1;
     font-variant-numeric: tabular-nums;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.journey__label {
+    color: var(--muted);
+    font-family: inherit;
+    font-size: 0.7rem;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
 }
 
 /* Duration sits on a line between departure and arrival, like a route on a timetable. */
