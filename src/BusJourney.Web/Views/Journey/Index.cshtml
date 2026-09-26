@@ -45,7 +45,8 @@
         <ol class="journey-list">
             @foreach (var journey in Model.Journeys)
             {
-                if (!nightNoticeShown && DateOnly.FromDateTime(journey.Departure) > Model.DepartureDate)
+                var isNextDay = DateOnly.FromDateTime(journey.Departure) > Model.DepartureDate;
+                if (!nightNoticeShown && isNextDay)
                 {
                     nightNoticeShown = true;
                     <li class="journey-list__notice">
@@ -53,7 +54,7 @@
                         Aşağıdaki seferler @TurkishDayNames.NightAfter(Model.DepartureDate) gerçekleşecektir.
                     </li>
                 }
-                <li class="journey">
+                <li class="journey@(isNextDay ? " journey--next-day" : "")">
                     <div class="journey__times">
                         <span class="journey__time">
                             <span class="journey__label">Kalkış</span>

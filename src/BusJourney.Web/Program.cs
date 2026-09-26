@@ -7,7 +7,18 @@ using BusJourney.Web.Session;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddControllersWithViews(options => options.Filters.Add<ProviderExceptionFilter>());
+builder.Services.AddControllersWithViews(options =>
+{
+    options.Filters.Add<ProviderExceptionFilter>();
+
+    // Values that cannot be parsed (e.g. a hand-edited URL with date=2026-09-39) get a Turkish message,
+    // not the framework's English default.
+    var messages = options.ModelBindingMessageProvider;
+    messages.SetAttemptedValueIsInvalidAccessor((_, field) =>
+        field == "date" ? "Geçerli bir tarih girin." : "Arama bilgileri geçersiz.");
+    messages.SetValueMustBeANumberAccessor(_ => "Arama bilgileri geçersiz.");
+    messages.SetValueIsInvalidAccessor(_ => "Arama bilgileri geçersiz.");
+});
 
 // Each visitor's provider session is kept in ASP.NET Core Session (cookie + IDistributedCache).
 // ponytail: in-memory cache works for a single instance; use AddStackExchangeRedisCache when scaling out.
