@@ -18,8 +18,9 @@ export class LocationAutocomplete {
     #debounceMs;
     #initialItems;
     #onChange;
-    #getDisabledId;
-    #disabledHint;
+    #getTakenId;
+    #takenHint;
+    #onSwap;
     #items = [];
     #activeIndex = -1;
     #selected = null;
@@ -33,19 +34,22 @@ export class LocationAutocomplete {
      *   debounceMs?: number,
      *   initialItems?: {id:number,name:string}[],
      *   onChange?: (item) => void,
-     *   getDisabledId?: () => number | undefined,
-     *   disabledHint?: string,
+     *   getTakenId?: () => number | undefined,
+     *   takenHint?: string,
+     *   onSwap?: (previous) => void,
      * }} options
-     *   `getDisabledId` is asked on every render; the matching suggestion is shown but cannot be picked
-     *   (used to keep origin and destination different), `disabledHint` explains why.
+     *   `getTakenId` is asked on every render; the matching suggestion is greyed out and labelled with
+     *   `takenHint`. Picking it still works and calls `onSwap` with this field's previous value, so the caller
+     *   can move it to the other field (origin and destination never end up equal).
      */
     constructor(root, {
         endpoint = '/locations',
         debounceMs = 300,
         initialItems = [],
         onChange,
-        getDisabledId = () => undefined,
-        disabledHint = '',
+        getTakenId = () => undefined,
+        takenHint = '',
+        onSwap,
     } = {}) {
         this.#input = root.querySelector('[data-ac-input]');
         this.#hidden = root.querySelector('[data-ac-value]');
@@ -54,8 +58,9 @@ export class LocationAutocomplete {
         this.#debounceMs = debounceMs;
         this.#initialItems = initialItems;
         this.#onChange = onChange;
-        this.#getDisabledId = getDisabledId;
-        this.#disabledHint = disabledHint;
+        this.#getTakenId = getTakenId;
+        this.#takenHint = takenHint;
+        this.#onSwap = onSwap;
 
         if (this.#hidden.value) {
             this.#selected = { id: Number(this.#hidden.value), name: this.#input.value };
@@ -64,6 +69,13 @@ export class LocationAutocomplete {
         this.#input.addEventListener('focus', () => {
             this.#input.select();
             this.#render(this.#initialItems);
+        });
+        // The field keeps focus after a pick, so a second tap fires no focus event: reopen the list on click too.
+        this.#input.addEventListener('click', () => {
+            if (this.#list.hidden) {
+                this.#input.select();
+                this.#render(this.#initialItems);
+            }
         });
         this.#input.addEventListener('input', () => this.#onInput());
         this.#input.addEventListener('keydown', (event) => this.#onKeyDown(event));
@@ -154,7 +166,7 @@ export class LocationAutocomplete {
         this.#activeIndex = -1;
         this.#input.removeAttribute('aria-activedescendant');
 
-        const disabledId = this.#getDisabledId();
+        const takenId = this.#getTakenId();
 
         if (items.length === 0) {
             const empty = document.createElement('li');
@@ -163,47 +175,40 @@ export class LocationAutocomplete {
             this.#list.replaceChildren(empty);
         } else {
             this.#list.replaceChildren(...items.map((item, index) =>
-                this.#createOption(item, index, item.id === disabledId)));
+                this.#createOption(item, index, item.id === takenId)));
         }
         this.#open();
     }
 
-    #createOption(item, index, disabled) {
+    #createOption(item, index, taken) {
         const option = document.createElement('li');
         option.id = `${this.#list.id}-option-${index}`;
-        option.className = disabled ? 'suggestion suggestion--disabled' : 'suggestion';
+        option.className = taken ? 'suggestion suggestion--taken' : 'suggestion';
         option.setAttribute('role', 'option');
         option.setAttribute('aria-selected', 'false');
         option.textContent = item.name;
 
-        if (disabled) {
-            option.setAttribute('aria-disabled', 'true');
-            if (this.#disabledHint) {
+        if (taken) {
+            if (this.#takenHint) {
                 const hint = document.createElement('span');
                 hint.className = 'suggestion__hint';
-                hint.textContent = this.#disabledHint;
+                hint.textContent = this.#takenHint;
                 option.append(hint);
             }
         }
 
-        // pointerdown (not click) so the input keeps focus and the outside-click handler does not fire first.
-        option.addEventListener('pointerdown', (event) => {
-            event.preventDefault();
-            if (!disabled) {
-                this.#select(item);
-            }
-        });
+        // pointerdown only keeps the input focused. Selecting must wait for click: closing the list on touch-down
+        // lets the finger's tap land on whatever is underneath (the search button), and would also select on scroll.
+        option.addEventListener('pointerdown', (event) => event.preventDefault());
+        option.addEventListener('click', () => this.#select(item));
         return option;
     }
 
-    /** Moves the keyboard highlight by `step`, skipping disabled options. */
+    /** Moves the keyboard highlight by `step`, staying within the list. */
     #move(step) {
-        const options = this.#list.querySelectorAll('[role="option"]');
-        for (let index = this.#activeIndex + step; index >= 0 && index < options.length; index += step) {
-            if (options[index].getAttribute('aria-disabled') !== 'true') {
-                this.#highlight(index);
-                return;
-            }
+        const next = this.#activeIndex + step;
+        if (next >= 0 && next < this.#list.querySelectorAll('[role="option"]').length) {
+            this.#highlight(next);
         }
     }
 
@@ -221,8 +226,11 @@ export class LocationAutocomplete {
     }
 
     #select(item) {
+        const previous = this.#selected;
+        const wasTaken = item.id === this.#getTakenId();
         this.setValue(item);
         this.#close();
+        if (wasTaken) this.#onSwap?.(previous);
         this.#onChange?.(item);
     }
 

@@ -43,7 +43,7 @@ dotnet test
 
 ## Features
 
-- Origin and destination with live search, a swap button, and the location picked on one side shown as unavailable on the other.
+- Origin and destination with live search, a swap button, and the location picked on one side greyed out on the other (choosing it swaps the two fields).
 - Date field with previous / next day arrows and a Today / Tomorrow switch. Defaults are the API's first two locations and tomorrow's date.
 - The last search is remembered in the browser and restored on the next visit.
 - Validation (same location, past date) in the browser and on the server.
@@ -77,6 +77,10 @@ HTTP, ASP.NET or the provider's JSON format.
 - **"Today" is always Turkish time,** independent of the server's time zone.
 - **Framework-free frontend:** Bootstrap for base styles plus small ES modules. The autocomplete is a
   reusable component.
+- **Route names travel in the query string** (`originName`, `destinationName`) next to the ids. They are only
+  used for the result header. Originally the header was resolved on the server from the location list when a
+  search had no journeys, keeping the URL to ids only. That failed because the provider cannot look a location
+  up by id and its unfiltered list is short (see below). Missing names fall back to the journeys' own names.
 - **Secrets are never in source control,** and missing settings are caught at startup.
 
 Tests run against a stub HTTP handler and a fixed clock, so they never call the real API.
@@ -87,6 +91,8 @@ Tests run against a stub HTTP handler and a fixed clock, so they never call the 
   sample Postman collection (`type: 1` + `connection.port` + `browser`) works and is the one used.
 - The documentation is inconsistent about some numeric types (`id`, `internet-price`). The client accepts both
   numbers and strings.
+- Although the documentation says `GetBusLocations` returns all locations without a keyword, the live API
+  returns only a short list of about 20 popular ones. Other locations (e.g. Bodrum) appear only when searched.
 - A search for a date also returns journeys leaving after midnight. They are kept at the end of the list.
 - The provider applies an IP-based rate limit, so this application also limits requests per client IP.
 

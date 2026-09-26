@@ -3,7 +3,7 @@ using BusJourney.Application.Models;
 
 namespace BusJourney.Web.Models;
 
-/// <summary>Query string of the journey list page: <c>/journey?originId=..&amp;destinationId=..&amp;date=yyyy-MM-dd</c>.</summary>
+/// <summary>Query string of the journey list page: <c>/journey?originId=..&amp;destinationId=..&amp;date=yyyy-MM-dd&amp;originName=..&amp;destinationName=..</c>.</summary>
 public sealed class JourneySearchInput
 {
     [Required(ErrorMessage = "Lütfen kalkış noktası seçin.")]
@@ -11,6 +11,13 @@ public sealed class JourneySearchInput
 
     [Required(ErrorMessage = "Lütfen varış noktası seçin.")]
     public int? DestinationId { get; set; }
+
+    // Display names for the result header; the provider cannot look a location up by id.
+    [StringLength(100)]
+    public string? OriginName { get; set; }
+
+    [StringLength(100)]
+    public string? DestinationName { get; set; }
 
     [Required(ErrorMessage = "Lütfen bir tarih seçin.")]
     public DateOnly? Date { get; set; }

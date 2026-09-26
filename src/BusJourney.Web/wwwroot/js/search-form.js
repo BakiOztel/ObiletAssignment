@@ -19,16 +19,19 @@ const searchButton = form.querySelector('[data-search-button]');
 const loadingOverlay = document.getElementById('loading-overlay');
 
 const initialItems = JSON.parse(document.getElementById('initial-locations').textContent);
-// Each field disables, in its suggestions, the location already picked on the other side.
+// Each field greys out, in its suggestions, the location already picked on the other side;
+// choosing it anyway swaps the two fields.
 const origin = new LocationAutocomplete(form.querySelector('[data-location-field="origin"]'), {
     initialItems,
-    getDisabledId: () => destination.getValue()?.id,
-    disabledHint: 'Varış noktası olarak seçili',
+    getTakenId: () => destination.getValue()?.id,
+    takenHint: 'Varış noktası olarak seçili',
+    onSwap: (previous) => destination.setValue(previous),
 });
 const destination = new LocationAutocomplete(form.querySelector('[data-location-field="destination"]'), {
     initialItems,
-    getDisabledId: () => origin.getValue()?.id,
-    disabledHint: 'Kalkış noktası olarak seçili',
+    getTakenId: () => origin.getValue()?.id,
+    takenHint: 'Kalkış noktası olarak seçili',
+    onSwap: (previous) => origin.setValue(previous),
 });
 
 // localStorage may be unavailable (private mode, blocked storage); the form must keep working without it.

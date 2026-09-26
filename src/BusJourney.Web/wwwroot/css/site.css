@@ -572,16 +572,11 @@ input[type="date"].field-input::-webkit-datetime-edit-fields-wrapper {
     cursor: default;
 }
 
-.suggestion--disabled {
+.suggestion--taken {
     display: flex;
     justify-content: space-between;
     gap: 12px;
     color: #9aa5a0;
-    cursor: not-allowed;
-}
-
-.suggestion--disabled:hover {
-    background: transparent;
 }
 
 .suggestion__hint {

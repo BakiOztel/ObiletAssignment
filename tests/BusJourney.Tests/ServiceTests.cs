@@ -89,7 +89,7 @@ public class JourneyServiceTests
             },
         };
 
-        var result = await CreateService(client).SearchAsync(Query, CancellationToken.None);
+        var result = await CreateService(client).SearchAsync(Query, null, null, CancellationToken.None);
 
         Assert.Equal([2L, 3L, 1L], result.Journeys.Select(j => j.Id));
         Assert.Equal("Origin", result.OriginName);
@@ -97,18 +97,14 @@ public class JourneyServiceTests
     }
 
     [Fact]
-    public async Task Empty_result_still_resolves_route_names()
+    public async Task Empty_result_keeps_the_given_route_names()
     {
-        var client = new FakeBusProviderClient
-        {
-            Locations = { new Location(349, "İstanbul Avrupa"), new Location(356, "Ankara") },
-        };
-
-        var result = await CreateService(client).SearchAsync(Query, CancellationToken.None);
+        var result = await CreateService(new FakeBusProviderClient())
+            .SearchAsync(Query, "İstanbul Avrupa", "Bodrum", CancellationToken.None);
 
         Assert.Empty(result.Journeys);
         Assert.Equal("İstanbul Avrupa", result.OriginName);
-        Assert.Equal("Ankara", result.DestinationName);
+        Assert.Equal("Bodrum", result.DestinationName);
     }
 
     private static JourneyService CreateService(FakeBusProviderClient client) =>

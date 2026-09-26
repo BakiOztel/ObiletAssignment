@@ -27,7 +27,7 @@ public sealed class JourneyController(
 
             if (ModelState.IsValid)
             {
-                return View(await journeyService.SearchAsync(query, cancellationToken));
+                return View(await journeyService.SearchAsync(query, input.OriginName, input.DestinationName, cancellationToken));
             }
         }
 

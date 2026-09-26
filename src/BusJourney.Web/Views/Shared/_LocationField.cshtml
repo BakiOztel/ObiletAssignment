@@ -4,7 +4,7 @@
     <label class="field-label" for="@Model.Key-input">@Model.Label</label>
     <div class="field-row">
         <span class="route-dot route-dot--@Model.Key" aria-hidden="true"></span>
-        <input id="@Model.Key-input" class="field-input" type="text" value="@Model.Value?.Name"
+        <input id="@Model.Key-input" name="@(Model.Key)Name" class="field-input" type="text" value="@Model.Value?.Name"
                placeholder="Şehir veya ilçe yazın" autocomplete="off" spellcheck="false"
                role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="@Model.Key-list"
                data-ac-input />
