@@ -24,6 +24,7 @@ export class LocationAutocomplete {
     #items = [];
     #activeIndex = -1;
     #selected = null;
+    #restore = null;
     #timer = 0;
     #abortController = null;
 
@@ -66,16 +67,14 @@ export class LocationAutocomplete {
             this.#selected = { id: Number(this.#hidden.value), name: this.#input.value };
         }
 
-        this.#input.addEventListener('focus', () => {
-            this.#input.select();
-            this.#render(this.#initialItems);
-        });
+        this.#input.addEventListener('focus', () => this.#openFresh());
         // The field keeps focus after a pick, so a second tap fires no focus event: reopen the list on click too.
         this.#input.addEventListener('click', () => {
-            if (this.#list.hidden) {
-                this.#input.select();
-                this.#render(this.#initialItems);
-            }
+            if (this.#list.hidden) this.#openFresh();
+        });
+        // Leaving the field without picking anything puts the previous choice back.
+        this.#input.addEventListener('blur', () => {
+            if (!this.#selected && this.#restore) this.setValue(this.#restore);
         });
         this.#input.addEventListener('input', () => this.#onInput());
         this.#input.addEventListener('keydown', (event) => this.#onKeyDown(event));
@@ -93,9 +92,24 @@ export class LocationAutocomplete {
 
     /** @param {{id:number, name:string} | null} item */
     setValue(item) {
+        this.#restore = null;
         this.#selected = item;
         this.#input.value = item?.name ?? '';
         this.#hidden.value = item?.id ?? '';
+    }
+
+    /**
+     * Opens the list with the field emptied (no selected text to cut/copy on mobile); the cleared choice is
+     * remembered and restored on blur if the user picks nothing.
+     */
+    #openFresh() {
+        if (this.#selected) {
+            this.#restore = this.#selected;
+            this.#selected = null;
+            this.#input.value = '';
+            this.#hidden.value = '';
+        }
+        this.#render(this.#initialItems);
     }
 
     #onInput() {
@@ -226,7 +240,7 @@ export class LocationAutocomplete {
     }
 
     #select(item) {
-        const previous = this.#selected;
+        const previous = this.#selected ?? this.#restore;
         const wasTaken = item.id === this.#getTakenId();
         this.setValue(item);
         this.#close();
